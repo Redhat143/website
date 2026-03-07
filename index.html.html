@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snake Game with D-Pad</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: #fff;
+      text-align: center;
+    }
+    #gameArea {
+      position: relative;
+      width: 600px;
+      height: 400px;
+      margin: 20px auto;
+      background: #333;
+      border: 3px solid #fff;
+      overflow: hidden;
+    }
+    .snake {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: lightblue;
+    }
+    .apple {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: red;
+      border-radius: 50%;
+    }
+    #score {
+      font-size: 24px;
+      margin-top: 10px;
+    }
+    /* D-Pad style controls */
+    #controls {
+      margin-top: 20px;
+      display: inline-block;
+    }
+    .btn {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      margin: 5px;
+      background: #555;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn:active {
+      background: #777;
+    }
+    #controls-grid {
+      display: grid;
+      grid-template-columns: 60px 60px 60px;
+      grid-template-rows: 60px 60px 60px;
+      justify-content: center;
+      align-items: center;
+    }
+    #up { grid-row: 1; grid-column: 2; }
+    #left { grid-row: 2; grid-column: 1; }
+    #right { grid-row: 2; grid-column: 3; }
+    #down { grid-row: 3; grid-column: 2; }
+  </style>
+</head>
+<body>
+  <h1>Snake Game</h1>
+  <div id="gameArea"></div>
+  <div id="score">Score: 0</div>
+
+  <!-- Arrow buttons in square formation -->
+  <div id="controls">
+    <div id="controls-grid">
+      <button id="up" class="btn">↑</button>
+      <button id="left" class="btn">←</button>
+      <button id="right" class="btn">→</button>
+      <button id="down" class="btn">↓</button>
+    </div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const scoreDisplay = document.getElementById("score");
+    const boxSize = 20;
+    const rows = gameArea.clientHeight / boxSize;
+    const cols = gameArea.clientWidth / boxSize;
+
+    let snake = [{x: 10, y: 10}];
+    let direction = null; // no movement until input
+    let apple = {x: 5, y: 5};
+    let score = 0;
+    let gameInterval = null;
+
+    function draw() {
+      gameArea.innerHTML = "";
+      snake.forEach(segment => {
+        const div = document.createElement("div");
+        div.className = "snake";
+        div.style.left = segment.x * boxSize + "px";
+        div.style.top = segment.y * boxSize + "px";
+        gameArea.appendChild(div);
+      });
+      const appleDiv = document.createElement("div");
+      appleDiv.className = "apple";
+      appleDiv.style.left = apple.x * boxSize + "px";
+      appleDiv.style.top = apple.y * boxSize + "px";
+      gameArea.appendChild(appleDiv);
+    }
+
+    function update() {
+      if (!direction) return; // do nothing until a direction is chosen
+
+      const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+      if (head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows ||
+          snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        alert("Game Over! Final Score: " + score);
+        resetGame();
+        return;
+      }
+      snake.unshift(head);
+      if (head.x === apple.x && head.y === apple.y) {
+        score++;
+        scoreDisplay.textContent = "Score: " + score;
+        placeApple();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function placeApple() {
+      apple = {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows)
+      };
+    }
+
+    function resetGame() {
+      snake = [{x: 10, y: 10}];
+      direction = null;
+      score = 0;
+      scoreDisplay.textContent = "Score: 0";
+      placeApple();
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(() => {
+        update();
+        draw();
+      }, 150);
+    }
+
+    // Prevent direct reversal
+    function setDirection(newDir) {
+      if (!direction) {
+        direction = newDir; // first move
+        return;
+      }
+      // disallow opposite direction
+      if (direction.x + newDir.x === 0 && direction.y + newDir.y === 0) {
+        return;
+      }
+      direction = newDir;
+    }
+
+    // Keyboard controls
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp" || e.key === "w") setDirection({x: 0, y: -1});
+      if (e.key === "ArrowDown" || e.key === "s") setDirection({x: 0, y: 1});
+      if (e.key === "ArrowLeft" || e.key === "a") setDirection({x: -1, y: 0});
+      if (e.key === "ArrowRight" || e.key === "d") setDirection({x: 1, y: 0});
+    });
+
+    // Button controls
+    document.getElementById("up").onclick = () => setDirection({x: 0, y: -1});
+    document.getElementById("down").onclick = () => setDirection({x: 0, y: 1});
+    document.getElementById("left").onclick = () => setDirection({x: -1, y: 0});
+    document.getElementById("right").onclick = () => setDirection({x: 1, y: 0});
+
+    resetGame();
+  </script>
+</body>
+</html>
