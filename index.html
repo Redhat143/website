@@ -1,241 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chandra Family</title>
+  <meta charset="UTF-8">
+  <title>Snake Game with D-Pad</title>
   <style>
     body {
-      background: linear-gradient(to bottom, #4facfe, #ff9a9e);
       margin: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: Arial, sans-serif;
+      background: #222;
       color: #fff;
       text-align: center;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
     }
-    h1 {
-      margin: 10px 0;
-      font-size: 2.5em;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+    #gameArea {
+      position: relative;
+      width: 600px;
+      height: 400px;
+      margin: 20px auto;
+      background: #333;
+      border: 3px solid #fff;
+      overflow: hidden;
     }
-    h2 {
-      margin-top: 30px;
+    .snake {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: lightblue;
     }
-    ol {
-      text-align: left;
-      max-width: 700px;
-      margin: 0 auto;
-      font-size: 1.3em;
-      font-family: 'Georgia', serif;
-    }
-    li {
-      margin: 20px 0;
-    }
-    .image-container {
-      display: inline-block;
-      text-align: center;
-      margin: 20px;
-    }
-    .image-container label {
-      display: block;
-      margin-top: 5px;
-      font-weight: bold;
-    }
-    img {
-      border-radius: 15px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    img:hover {
-      transform: scale(1.05);
-    }
-    .pic2 {
-      width: 300px;
-    }
-    .pic3 {
-      width: 250px;
-    }
-    .correct {
-      color: #cef3eb;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    .hint {
-      color: black;
-      font-size: 0.65em;
-      margin-top: 5px;
-      font-style: italic;
+    .apple {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: red;
+      border-radius: 50%;
     }
     #score {
-      position: fixed;
-      top: 50%;
-      left: 20px;
-      transform: translateY(-50%);
-      font-size: 2em;
-      font-weight: bold;
-      color: #f8f67f; /* bright yellow */
+      font-size: 24px;
+      margin-top: 10px;
     }
-    #contact {
-      border-top: 3px solid #fff; /* border line above contact section */
-      margin-top: 50px;
-      padding-top: 20px;
+    /* D-Pad style controls */
+    #controls {
+      margin-top: 20px;
+      display: inline-block;
     }
-    #contact h2 {
-      font-size: 2em;
-      margin-bottom: 10px;
+    .btn {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      margin: 5px;
+      background: #555;
       color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
     }
-    #contact p {
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #ffe082; /* soft golden color */
-      margin: 0;
+    .btn:active {
+      background: #777;
     }
+    #controls-grid {
+      display: grid;
+      grid-template-columns: 60px 60px 60px;
+      grid-template-rows: 60px 60px 60px;
+      justify-content: center;
+      align-items: center;
+    }
+    #up { grid-row: 1; grid-column: 2; }
+    #left { grid-row: 2; grid-column: 1; }
+    #right { grid-row: 2; grid-column: 3; }
+    #down { grid-row: 3; grid-column: 2; }
   </style>
 </head>
 <body>
-  <h1>Welcome to AlooChandra!</h1>
-  <h1>Guess What Mummy Made for Dinner Today?</h1>
-  <h2>Solve These 5 Fun Questions and Get Points ! ~ :</h2>
-  <ol>
-    <li>
-      Which of these two were made today?<br>
-      <div class="image-container">
-        <img src="pic1.jpeg" alt="Pic 1" width="200" onclick="checkAnswer(1,false,'❌ Wrong choice! Try again.')">
-        <label>a)</label>
-      </div>
-      <div class="image-container">
-        <img src="potato1.png" alt="Pic 2" class="pic2" onclick="checkAnswer(1,true,'✅ Correct! Aloo Gobhi was made today.')">
-        <label>b)</label>
-      </div>
-      <div id="answer1" class="correct"></div>
-    </li>
+  <h1>Snake Game</h1>
+  <div id="gameArea"></div>
+  <div id="score">Score: 0</div>
 
-    <li>
-      Which of these two is Mummy's Favourite?<br>
-      <div class="image-container">
-        <img src="pic2.jpeg" alt="Pic 3" class="pic2" width="200" onclick="checkAnswer(2,false,'❌ Wrong choice! Try again.')">
-        <label>a)</label>
-      </div>
-      <div class="image-container">
-        <img src="potato2.jpeg" alt="Pic 4" class="pic3" width="200" onclick="checkAnswer(2,true,'✅ Correct! Aalo Beans is Mummy\'s Favourite.')">
-        <label>b)</label>
-      </div>
-      <div id="answer2" class="correct"></div>
-    </li>
-
-    <li>
-      Which of these is preferred over any circumstance?<br>
-      <div class="image-container">
-        <img src="potato3.jpeg" alt="Pic 5" class="pic3" width="200" onclick="checkAnswer(3,true,'✅ Correct! Dadi Loves Aloo Chokha!')">
-        <label>a)</label>
-      </div>
-      <div class="image-container">
-        <img src="pic3.jpeg" alt="Pic 6" class="pic3" width="200" onclick="checkAnswer(3,false,'❌ Wrong! Try Again')">
-        <label>b)</label>
-      </div>
-      <div class="hint">Hint: Dadi loves it!</div>
-      <div id="answer3" class="correct"></div>
-    </li>
-
-    <li>
-      Which Sabji is Chandra Family's Most Favourite Sabji?<br>
-      <div class="image-container">
-        <img src="potato4.jpeg" alt="Pic 7" width="200" onclick="checkAnswer(4,true,'✅ Absolutely Correct!!! Chandra Family Loves Aloo Bujiya!!!')">
-        <label>a)</label>
-      </div>
-      <div class="image-container">
-        <img src="pic4.jpeg" alt="Pic 8" width="200" onclick="checkAnswer(4,false,'❌ Absolutely Wrong!!! How can you get this wrong ?!!')">
-        <label>b)</label>
-      </div>
-      <div id="answer4" class="correct"></div>
-    </li>
-
-    <li>
-      Which of these have chances to be made with Aloo in the near Future?<br>
-      <div class="image-container">
-        <img src="pic5.jpeg" alt="Pic 9" class="pic2" width="200" onclick="checkAnswer(5,true,'✅ Sure!!Why Not? Anything\'s Posiible in Chandra Family!!!!')">
-        <label>a)</label>
-      </div>
-      <div class="image-container">
-        <img src="pic6.jpeg" alt="Pic 10" class="pic3" width="200" onclick="checkAnswer(5,true,'✅ Sure!!Why Not? Anything\'s Posiible in Chandra Family!!!')">
-        <label>b)</label>
-      </div>
-      <div id="answer5" class="correct"></div>
-    </li>
-  </ol>
-
-  <div id="score">Score: 0 / 5</div>
-
-<div style="margin-top: 60px;">
-  <button id="submitBtn">Submit</button>
-</div>
-
-<style>
-  #submitBtn {
-    background: linear-gradient(to right, #ff9966, #ff5e62);
-    border: none;
-    border-radius: 25px;
-    padding: 15px 40px;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-    transition: transform 0.2s, background 0.3s;
-  }
-  #submitBtn:hover {
-    transform: scale(1.08);
-    background: linear-gradient(to right, #ff5e62, #ff9966);
-  }
-</style>
-
-<script>
-  document.getElementById('submitBtn').addEventListener('click', function() {
-    let message = "<h1 style='font-size:3em; color:#fff; text-shadow:2px 2px 6px rgba(0,0,0,0.3);'>You have Scored : " + score + " / 5</h1>";
-
-    if(score === 5) {
-      message += "<h2 style='color:#f8f67f; margin-top:20px;'>🎉 Congratulations, You Are True A Chandra 🎉</h2>";
-    } else if(score === 3 || score === 4) {
-      message += "<h2 style='color:#ffe082; margin-top:20px;'>Good Score, But You can do better 😉</h2>";
-      message += "<p style='color:#cef3eb; font-size:1.3em; margin-top:10px;'>Tip: Aloo is always made at home</p>";
-    } else {
-      message += "<h2 style='color:#ffcccb; margin-top:20px;'>Come On you Could Have Done Better !!</h2>";
-    }
-
-    document.body.innerHTML = message;
-    document.body.style.display = "flex";
-    document.body.style.flexDirection = "column";
-    document.body.style.justifyContent = "center";
-    document.body.style.alignItems = "center";
-    document.body.style.background = "linear-gradient(to bottom, #4facfe, #ff9a9e)";
-  });
-</script>
-  
-  <div id="contact">
-    <h2>Contact Us</h2>
-    <p>Mobile: 9876543210</p>
+  <!-- Arrow buttons in square formation -->
+  <div id="controls">
+    <div id="controls-grid">
+      <button id="up" class="btn">↑</button>
+      <button id="left" class="btn">←</button>
+      <button id="right" class="btn">→</button>
+      <button id="down" class="btn">↓</button>
+    </div>
   </div>
 
   <script>
+    const gameArea = document.getElementById("gameArea");
+    const scoreDisplay = document.getElementById("score");
+    const boxSize = 20;
+    const rows = gameArea.clientHeight / boxSize;
+    const cols = gameArea.clientWidth / boxSize;
+
+    let snake = [{x: 10, y: 10}];
+    let direction = null; // no movement until input
+    let apple = {x: 5, y: 5};
     let score = 0;
-    let answered = {};
+    let gameInterval = null;
 
-    function checkAnswer(question, isCorrect, message) {
-      if(answered[question]) return; // prevent changing answer once clicked
-      answered[question] = true;
-
-      let answerDiv = document.getElementById('answer' + question);
-      answerDiv.innerText = message;
-
-      if(isCorrect) {
-        score++;
-      }
-
-      document.getElementById('score').innerText = "Score: " + score + " / 5";
+    function draw() {
+      gameArea.innerHTML = "";
+      snake.forEach(segment => {
+        const div = document.createElement("div");
+        div.className = "snake";
+        div.style.left = segment.x * boxSize + "px";
+        div.style.top = segment.y * boxSize + "px";
+        gameArea.appendChild(div);
+      });
+      const appleDiv = document.createElement("div");
+      appleDiv.className = "apple";
+      appleDiv.style.left = apple.x * boxSize + "px";
+      appleDiv.style.top = apple.y * boxSize + "px";
+      gameArea.appendChild(appleDiv);
     }
+
+    function update() {
+      if (!direction) return; // do nothing until a direction is chosen
+
+      const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+      if (head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows ||
+          snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        alert("Game Over! Final Score: " + score);
+        resetGame();
+        return;
+      }
+      snake.unshift(head);
+      if (head.x === apple.x && head.y === apple.y) {
+        score++;
+        scoreDisplay.textContent = "Score: " + score;
+        placeApple();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function placeApple() {
+      apple = {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows)
+      };
+    }
+
+    function resetGame() {
+      snake = [{x: 10, y: 10}];
+      direction = null;
+      score = 0;
+      scoreDisplay.textContent = "Score: 0";
+      placeApple();
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(() => {
+        update();
+        draw();
+      }, 150);
+    }
+
+    // Prevent direct reversal
+    function setDirection(newDir) {
+      if (!direction) {
+        direction = newDir; // first move
+        return;
+      }
+      // disallow opposite direction
+      if (direction.x + newDir.x === 0 && direction.y + newDir.y === 0) {
+        return;
+      }
+      direction = newDir;
+    }
+
+    // Keyboard controls
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp" || e.key === "w") setDirection({x: 0, y: -1});
+      if (e.key === "ArrowDown" || e.key === "s") setDirection({x: 0, y: 1});
+      if (e.key === "ArrowLeft" || e.key === "a") setDirection({x: -1, y: 0});
+      if (e.key === "ArrowRight" || e.key === "d") setDirection({x: 1, y: 0});
+    });
+
+    // Button controls
+    document.getElementById("up").onclick = () => setDirection({x: 0, y: -1});
+    document.getElementById("down").onclick = () => setDirection({x: 0, y: 1});
+    document.getElementById("left").onclick = () => setDirection({x: -1, y: 0});
+    document.getElementById("right").onclick = () => setDirection({x: 1, y: 0});
+
+    resetGame();
   </script>
 </body>
 </html>
