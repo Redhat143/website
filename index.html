@@ -2,79 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Snake Game with D-Pad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game - Responsive</title>
   <style>
+    /* 1. Global Reset & Layout */
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #222;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a1a;
       color: #fff;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
+
+    h1 {
+      margin: 10px 0;
+      font-size: 1.5rem;
+    }
+
+    /* 2. Responsive Game Canvas Container */
     #gameArea {
       position: relative;
-      width: 600px;
-      height: 400px;
-      margin: 20px auto;
+      width: 90vw;
+      max-width: 600px;
+      height: 300px; /* Reduced height to ensure buttons fit below */
       background: #333;
-      border: 3px solid #fff;
+      border: 3px solid #444;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
       overflow: hidden;
     }
+
     .snake {
       position: absolute;
       width: 20px;
       height: 20px;
-      background: lightblue;
+      background: #00d4ff;
+      border-radius: 4px;
+      box-sizing: border-box;
+      border: 1px solid #1a1a1a;
     }
+
     .apple {
       position: absolute;
       width: 20px;
       height: 20px;
-      background: red;
+      background: #ff4d4d;
       border-radius: 50%;
+      box-shadow: 0 0 10px #ff4d4d;
     }
+
     #score {
-      font-size: 24px;
-      margin-top: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0;
+      color: #00d4ff;
     }
-    /* D-Pad style controls */
+
+    /* 3. D-Pad Positioning - Fixed at bottom */
     #controls {
-      margin-top: 20px;
-      display: inline-block;
+      margin: 10px 0 20px 0;
     }
-    .btn {
-      width: 60px;
-      height: 60px;
-      font-size: 24px;
-      margin: 5px;
-      background: #555;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .btn:active {
-      background: #777;
-    }
+
     #controls-grid {
       display: grid;
-      grid-template-columns: 60px 60px 60px;
-      grid-template-rows: 60px 60px 60px;
+      grid-template-columns: repeat(3, 65px);
+      grid-template-rows: repeat(3, 65px);
+      gap: 10px;
       justify-content: center;
-      align-items: center;
     }
+
+    .btn {
+      width: 65px;
+      height: 65px;
+      font-size: 28px;
+      background: #444;
+      color: #fff;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Prevents zooming on mobile when tapping fast */
+      touch-action: manipulation;
+      user-select: none;
+      box-shadow: 0 4px #222;
+    }
+
+    .btn:active {
+      background: #555;
+      box-shadow: 0 2px #222;
+      transform: translateY(2px);
+    }
+
     #up { grid-row: 1; grid-column: 2; }
     #left { grid-row: 2; grid-column: 1; }
     #right { grid-row: 2; grid-column: 3; }
     #down { grid-row: 3; grid-column: 2; }
+
+    /* Hide middle empty space */
+    .btn-empty { visibility: hidden; }
   </style>
 </head>
 <body>
-  <h1>Snake Game</h1>
-  <div id="gameArea"></div>
-  <div id="score">Score: 0</div>
 
-  <!-- Arrow buttons in square formation -->
+  <h1>Snake Game</h1>
+  <div id="score">Score: 0</div>
+  <div id="gameArea"></div>
+
   <div id="controls">
     <div id="controls-grid">
       <button id="up" class="btn">↑</button>
@@ -88,24 +128,35 @@
     const gameArea = document.getElementById("gameArea");
     const scoreDisplay = document.getElementById("score");
     const boxSize = 20;
-    const rows = gameArea.clientHeight / boxSize;
-    const cols = gameArea.clientWidth / boxSize;
+    
+    // Dynamic calculation based on current container size
+    let rows, cols;
+    function calculateGrid() {
+      rows = Math.floor(gameArea.clientHeight / boxSize);
+      cols = Math.floor(gameArea.clientWidth / boxSize);
+    }
 
-    let snake = [{x: 10, y: 10}];
-    let direction = null; // no movement until input
+    let snake = [{x: 10, y: 5}];
+    let direction = null; 
     let apple = {x: 5, y: 5};
     let score = 0;
     let gameInterval = null;
 
     function draw() {
       gameArea.innerHTML = "";
-      snake.forEach(segment => {
+      
+      // Draw Snake
+      snake.forEach((segment, index) => {
         const div = document.createElement("div");
         div.className = "snake";
+        // Gradient effect: head is brighter
+        if(index === 0) div.style.background = "#fff"; 
         div.style.left = segment.x * boxSize + "px";
         div.style.top = segment.y * boxSize + "px";
         gameArea.appendChild(div);
       });
+
+      // Draw Apple
       const appleDiv = document.createElement("div");
       appleDiv.className = "apple";
       appleDiv.style.left = apple.x * boxSize + "px";
@@ -114,16 +165,20 @@
     }
 
     function update() {
-      if (!direction) return; // do nothing until a direction is chosen
+      if (!direction) return;
 
       const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+
+      // Collision Check
       if (head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows ||
           snake.some(seg => seg.x === head.x && seg.y === head.y)) {
-        alert("Game Over! Final Score: " + score);
+        alert("Game Over! Score: " + score);
         resetGame();
         return;
       }
+
       snake.unshift(head);
+
       if (head.x === apple.x && head.y === apple.y) {
         score++;
         scoreDisplay.textContent = "Score: " + score;
@@ -138,14 +193,20 @@
         x: Math.floor(Math.random() * cols),
         y: Math.floor(Math.random() * rows)
       };
+      // Prevent apple from spawning on snake
+      if (snake.some(seg => seg.x === apple.x && seg.y === apple.y)) {
+        placeApple();
+      }
     }
 
     function resetGame() {
-      snake = [{x: 10, y: 10}];
+      calculateGrid();
+      snake = [{x: Math.floor(cols/2), y: Math.floor(rows/2)}];
       direction = null;
       score = 0;
       scoreDisplay.textContent = "Score: 0";
       placeApple();
+      
       if (gameInterval) clearInterval(gameInterval);
       gameInterval = setInterval(() => {
         update();
@@ -153,32 +214,34 @@
       }, 150);
     }
 
-    // Prevent direct reversal
     function setDirection(newDir) {
       if (!direction) {
-        direction = newDir; // first move
+        direction = newDir;
         return;
       }
-      // disallow opposite direction
+      // Prevent 180-degree turns
       if (direction.x + newDir.x === 0 && direction.y + newDir.y === 0) {
         return;
       }
       direction = newDir;
     }
 
-    // Keyboard controls
+    // Controls
     document.addEventListener("keydown", e => {
-      if (e.key === "ArrowUp" || e.key === "w") setDirection({x: 0, y: -1});
-      if (e.key === "ArrowDown" || e.key === "s") setDirection({x: 0, y: 1});
-      if (e.key === "ArrowLeft" || e.key === "a") setDirection({x: -1, y: 0});
-      if (e.key === "ArrowRight" || e.key === "d") setDirection({x: 1, y: 0});
+      const key = e.key.toLowerCase();
+      if (key === "arrowup" || key === "w") setDirection({x: 0, y: -1});
+      if (key === "arrowdown" || key === "s") setDirection({x: 0, y: 1});
+      if (key === "arrowleft" || key === "a") setDirection({x: -1, y: 0});
+      if (key === "arrowright" || key === "d") setDirection({x: 1, y: 0});
     });
 
-    // Button controls
     document.getElementById("up").onclick = () => setDirection({x: 0, y: -1});
     document.getElementById("down").onclick = () => setDirection({x: 0, y: 1});
     document.getElementById("left").onclick = () => setDirection({x: -1, y: 0});
     document.getElementById("right").onclick = () => setDirection({x: 1, y: 0});
+
+    // Handle window resize
+    window.addEventListener('resize', calculateGrid);
 
     resetGame();
   </script>
